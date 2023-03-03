@@ -1,0 +1,14 @@
+{
+  "name": "electron",
+  "version": "1.0.0",
+  "main": "main.js",
+  "repository": "https://github.com/uz1pk/workstudy2.git",
+  "author": "Usman Zaheer <usmanozaheer@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^23.1.1"
+  },
+  "scripts": {
+    "start": "electron ."
+  }
+}

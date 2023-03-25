@@ -1,14 +1,15 @@
 {
-  "name": "electron",
+  "name": "pretty-calculator",
   "version": "1.0.0",
+  "description": "A electron app to parse formSite CSV exports into a PDF",
   "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
   "repository": "https://github.com/uz1pk/workstudy2.git",
   "author": "Usman Zaheer <usmanozaheer@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "electron": "^23.1.1"
-  },
-  "scripts": {
-    "start": "electron ."
   }
 }

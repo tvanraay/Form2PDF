@@ -1,0 +1,6 @@
+black==23.1.0
+fillpdf==0.7.2
+pdf2image==1.16.3
+pdfrw2==0.5.0
+Pillow==9.4.0
+PyMuPDF==1.21.1

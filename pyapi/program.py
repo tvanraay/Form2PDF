@@ -1,25 +1,24 @@
 from fillpdf import fillpdfs
 from csv import DictReader
+import sys
+
+if len(sys.argv) != 3:
+    print("Invalid number of arguments")
+    sys.exit()
 
 # constants
 string_options = {"a": 0, "b": 1, "c": 2, "1": 0, "2": 1, "3": 2}
 radio_button_conversion = {"Not Necessary": "No", "Necessary": "Yes"}
+outputFilePath = "./pyapi/bin/new1.pdf"
+csvFilePath, pdfFilePath = sys.argv[1], sys.argv[2]
 
-# def is_numeric(x):
-#     try:
-#         float(x)
-#         int(x)
-#         return True
-#     except (TypeError, ValueError):
-#         return False
-
-# def is_numbered_item(string):
-#     for i, c in enumerate(string):
-#         if c.isdigit():
-#             validation_string = string[i : len(string)]
-#             if is_numeric(validation_string):
-#                 return True
-#     return False
+def is_numeric(x):
+    try:
+        float(x)
+        int(x)
+        return True
+    except (TypeError, ValueError):
+        return False
 
 def create_formatted_data_from_csv(csv_filename: str):
     values = DictReader(open(csv_filename))
@@ -46,39 +45,30 @@ def fill_fields(data: "dict[str, list]", fields: "dict[str, str]") -> "dict[str,
                 updated[field_key] = data[potential_data_key][reviewer_index]
 
         elif "-ave" in field_key:
-            try:
-                key_without_ave = field_key.replace("-ave", "")
+            key_without_ave = field_key.replace("-ave", "")
 
-                int_list = []
+            int_list = [int(x) for x in data[key_without_ave] if is_numeric(x)]
 
-                for x in data[key_without_ave]:
-                    try:
-                        int_list.append(int(x))
-                    except ValueError:
-                        pass
-
+            if len(data[key_without_ave]) > 0:
                 average = sum(int_list) / len(data[key_without_ave])
 
-                updated[field_key] = str(round(average, 2))
-
-            except ZeroDivisionError as e:
-                print(e)
+            updated[field_key] = str(round(average, 2))
 
     return updated
 
 
 # set raw data and parameters needed
-data = create_formatted_data_from_csv("PeerReviewerForm2.csv")
+data = create_formatted_data_from_csv(csvFilePath)
 
 # get all PDF fields
-all_fields = fillpdfs.get_form_fields("PPP-2023-XX-X_Final_Review_Template.pdf")
+all_fields = fillpdfs.get_form_fields(pdfFilePath)
 
 field_updates = fill_fields(data, all_fields)
 
 while 1:
     try:
         fillpdfs.write_fillable_pdf(
-            "PPP-2023-XX-X_Final_Review_Template.pdf", "./bin/new1.pdf", field_updates
+            pdfFilePath, outputFilePath, field_updates
         )
         break
 

@@ -25,7 +25,7 @@
 
     <link href="main.css" rel="stylesheet" type="text/css" />
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>PeerPremier Automation</title>
   </head>
 
@@ -36,25 +36,30 @@
     ></script>
 
     <div class="file-upload">
-      <button
-        class="file-upload-btn"
-        type="button"
-        onclick="$('.file-upload-input').trigger( 'click' )"
-      >
-        Add File
-      </button>
+      <div class="container">
 
-      <div class="file-upload-wrap">
-        <input
-          class="file-upload-input"
-          type="file"
-          onchange="readURL(this);"
-        />
-        <div class="drag-text">
-          <h3>Drag and drop a file or select add File</h3>
+        <div class="upload-btn-wrapper">
+          <button class="btn">Upload CSV</button>
+          <input type="file" accept=".csv" onchange="uploadFile(this, false)" />
+        </div>
+
+        <div class="upload-btn-wrapper">
+          <button class="btn">Upload PDF</button>
+          <input type="file" accept="application/pdf" onchange="uploadFile(this, true)" />
         </div>
       </div>
 
+      <div class="file-upload-wrap">
+        <ul id="file-list">
+            <!-- ALL FILE ITEMS INSERTED HERE -->
+        </ul>
+      </div>
+
+      <br />
+
+      <button class="remove-file" type="button" onclick="processPDF()">
+        Export
+      </button>
     </div>
   </body>
   <script src="renderer.js"></script>

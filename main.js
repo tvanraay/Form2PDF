@@ -3,82 +3,96 @@ const path = require("path");
 const spawn = require("child_process").spawn;
 
 const PY_FOLDER = "pyapi";
-// const PY_MODULE = 'api' // without .py suffix
+const PY_MODULE = "program";
+let pyProcess = null;
+let pyPort = null;
+let inputCSVPath = null;
+let inputPDFPath = null;
 
-//let pyProcess = null;
-//let pyPort = null;
+function getScriptPath() {
+  return path.join(__dirname, PY_FOLDER, PY_MODULE + ".py");
+}
 
-// const guessPackaged = () => {
-//   const fullPath = path.join(__dirname, PY_DIST_FOLDER);
-//   return require("fs").existsSync(fullPath);
-// };
+function callPyProc(csv, pdf) {
+  let script = getScriptPath();
 
-// const getScriptPath = () => {
-//   if (!guessPackaged()) {
-//     return path.join(__dirname, PY_FOLDER, PY_MODULE + ".py");
-//   }
-//   if (process.platform === "win32") {
-//     return path.join(__dirname, PY_DIST_FOLDER, PY_MODULE, PY_MODULE + ".exe");
-//   }
-//   return path.join(__dirname, PY_DIST_FOLDER, PY_MODULE, PY_MODULE);
-// };
+  pyProcess = spawn("python", [script, csv, pdf]);
 
-// const selectPort = () => {
-//   pyPort = 4242;
-//   return pyPort;
-// };
+  if (pyProcess != null) {
+    console.log("child process creation success");
+  }
+}
 
-// const createPyProc = () => {
-//   let script = getScriptPath();
-//   let port = "" + selectPort();
+function exitPyProc() {
+  if (pyProcess != null) {
+    pyProcess.kill();
+    pyProcess = null;
+    pyPort = null;
+    console.log("child process killed");
+  }
+}
 
-//   if (guessPackaged()) {
-//     pyProcess = require("child_process").execFile(script, [port]);
-//   } else {
-//     pyProcess = require("child_process").spawn("python", [script, port]);
-//   }
+app.on("will-quit", exitPyProc);
 
-//   if (pyProcess != null) {
-//     //console.log(pyProcess)
-//     console.log("child process success on port " + port);
-//   }
-// };
+/*************************************************************
+ * IPC/API Handlers
+ *************************************************************/
 
-// const exitPyProc = () => {
-//   pyProcess.kill();
-//   pyProcess = null;
-//   pyPort = null;
-// };
+function postPDF(event, filepath) {
+  inputPDFPath = filepath;
+}
 
-//app.on("ready", createPyProc);
-//app.on("will-quit", exitPyProc);
+function postCSV(event, filepath) {
+  inputCSVPath = filepath;
+}
+
+function getCSV(event) {
+  return inputCSVPath;
+}
+
+function getPDF(event) {
+  return inputPDFPath;
+}
+
+function processPDF(event) {
+  if (inputCSVPath == null || inputPDFPath == null) {
+    return { error: "Please upload both a CSV and a PDF" };
+  }
+
+  callPyProc(inputCSVPath, inputPDFPath);
+
+  return {
+    pdf: inputPDFPath,
+    csv: inputCSVPath,
+  };
+}
 
 /*************************************************************
  * window management
  *************************************************************/
 
-let inputFilePath = null;
-
-const createWindow = () => {
+function createWindow() {
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 600,
+    height: 450,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
   });
 
-  ipcMain.on("postFilePath", (event, data) => {
-    inputFilePath = data;
-  });
+  // api invokation handlers
+  ipcMain.on("postCSV", postCSV);
+  ipcMain.on("postPDF", postPDF);
 
   win.loadFile("index.html");
-};
+}
 
 app.whenReady().then(() => {
-  ipcMain.handle("getFilePath", (event) => {
-    return inputFilePath;
-  });
+
+  // api return handlers
+  ipcMain.handle("getCSV", getCSV);
+  ipcMain.handle("getPDF", getPDF);
+  ipcMain.handle("processPDF", processPDF);
 
   createWindow();
 

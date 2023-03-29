@@ -1,3 +1,10 @@
+# import subprocess
+
+# activate_this_file = "/path/to/virtualenv/bin/activate_this.py"
+
+# execfile(activate_this_file, dict(__file__=activate_this_file))
+
+
 from fillpdf import fillpdfs
 from csv import DictReader
 import sys
@@ -68,7 +75,7 @@ field_updates = fill_fields(data, all_fields)
 while 1:
     try:
         fillpdfs.write_fillable_pdf(
-            pdfFilePath, outputFilePath, field_updates
+            pdfFilePath, "./pyapi/bin/new1.pdf", field_updates
         )
         break
 

@@ -5,7 +5,6 @@ const spawn = require("child_process").spawn;
 const PY_FOLDER = "pyapi";
 const PY_MODULE = "program";
 let pyProcess = null;
-let pyPort = null;
 let inputCSVPath = null;
 let inputPDFPath = null;
 
@@ -13,21 +12,68 @@ function getScriptPath() {
   return path.join(__dirname, PY_FOLDER, PY_MODULE + ".py");
 }
 
-function callPyProc(csv, pdf) {
-  let script = getScriptPath();
+const callPyProc = (csv, pdf) => {
+  let pythonScriptPath = getScriptPath();
+  const activatePath = path.join(__dirname, PY_FOLDER, 'venv', 'bin', 'activate');
 
-  pyProcess = spawn("python", [script, csv, pdf]);
+  const child = spawn('bash', ['-c', `source ${activatePath} && python ${pythonScriptPath} ${csv} ${pdf}`]);
 
-  if (pyProcess != null) {
-    console.log("child process creation success");
-  }
-}
+  child.stdout.on('data', (data) => {
+    console.log(`stdout: ${data}`);
+  });
+
+  child.stderr.on('data', (data) => {
+    console.error(`stderr: ${data}`);
+  });
+
+  child.on('close', (code) => {
+    console.log(`child process exited with code ${code}`);
+  });
+};
+
+// function callPyProc(csv, pdf) {
+//   let script = getScriptPath();
+
+//   exec("source ./pyapi/venv/bin/activate", (error, stdout, stderr) => {
+//     if (error) {
+//         console.log(`error: ${error.message}`);
+//         return;
+//     }
+//     if (stderr) {
+//         console.log(`stderr: ${stderr}`);
+//         return;
+//     }
+//     console.log(`stdout: ${stdout}`);
+//   });
+
+//   const pythonScript = spawn('python', [script, csv, pdf]);
+
+//   const activateVirtualEnv = spawn('source', ['./pyapi/venv/bin/activate']);
+//   activateVirtualEnv.on('close', (code) => {
+//     console.log(`child process exited with code ${code}`);
+  
+//     const pythonScript = spawn('python', [script, csv, pdf]);
+  
+//     pythonScript.stderr.on('data', (data) => {
+//       console.error(`stderr: ${data}`);
+//     });
+  
+//     pythonScript.on('close', (code) => {
+//       console.log(`child process exited with code ${code}`);
+//     });
+//   }); 
+
+//   pyProcess = spawn("python", [script, csv, pdf]);
+
+//   if (pyProcess != null) {
+//     console.log("child process creation success");
+//   }
+// }
 
 function exitPyProc() {
   if (pyProcess != null) {
     pyProcess.kill();
     pyProcess = null;
-    pyPort = null;
     console.log("child process killed");
   }
 }

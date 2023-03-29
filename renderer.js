@@ -18,8 +18,6 @@ function uploadFile(input, isPDF) {
 
 async function processPDF() {
     await api.processPDF();
-    
-    alert("sucessfully processed PDF");
 }
 
 function sanitzeFilename(filename) {

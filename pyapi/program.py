@@ -1,15 +1,10 @@
-# import subprocess
-
-# activate_this_file = "/path/to/virtualenv/bin/activate_this.py"
-
-# execfile(activate_this_file, dict(__file__=activate_this_file))
-
-
 from fillpdf import fillpdfs
 from csv import DictReader
 import sys
 
-if len(sys.argv) != 3:
+#"./pyapi/bin/new1.pdf"
+
+if len(sys.argv) != 4:
     print("Invalid number of arguments")
     sys.exit()
 
@@ -17,7 +12,7 @@ if len(sys.argv) != 3:
 string_options = {"a": 0, "b": 1, "c": 2, "1": 0, "2": 1, "3": 2}
 radio_button_conversion = {"Not Necessary": "No", "Necessary": "Yes"}
 outputFilePath = "./pyapi/bin/new1.pdf"
-csvFilePath, pdfFilePath = sys.argv[1], sys.argv[2]
+csvFilePath, pdfFilePath, outputPath = sys.argv[1], sys.argv[2], sys.argv[3]
 
 def is_numeric(x):
     try:
@@ -75,7 +70,7 @@ field_updates = fill_fields(data, all_fields)
 while 1:
     try:
         fillpdfs.write_fillable_pdf(
-            pdfFilePath, "./pyapi/bin/new1.pdf", field_updates
+            pdfFilePath, outputPath, field_updates
         )
         break
 

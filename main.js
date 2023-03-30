@@ -4,6 +4,8 @@ const spawn = require("child_process").spawn;
 
 const PY_FOLDER = "pyapi";
 const PY_MODULE = "program";
+const PY_ACTIVATE = "venv/bin/activate";
+
 let pyProcess = null;
 let inputCSVPath = null;
 let inputPDFPath = null;
@@ -12,63 +14,20 @@ function getScriptPath() {
   return path.join(__dirname, PY_FOLDER, PY_MODULE + ".py");
 }
 
-const callPyProc = (csv, pdf) => {
-  let pythonScriptPath = getScriptPath();
-  const activatePath = path.join(__dirname, PY_FOLDER, 'venv', 'bin', 'activate');
+function getVenvPath() {
+  return path.join(__dirname, PY_FOLDER, PY_ACTIVATE);
+}
 
-  const child = spawn('bash', ['-c', `source ${activatePath} && python ${pythonScriptPath} ${csv} ${pdf}`]);
+function callPyProc(csv, pdf) {
+  const pythonScriptPath = getScriptPath();
+  const activatePath = getVenvPath();
 
-  child.stdout.on('data', (data) => {
-    console.log(`stdout: ${data}`);
-  });
+  pyProcess = spawn('bash', ['-c', `source ${activatePath} && python3 ${pythonScriptPath} ${csv} ${pdf}`]);
 
-  child.stderr.on('data', (data) => {
-    console.error(`stderr: ${data}`);
-  });
-
-  child.on('close', (code) => {
-    console.log(`child process exited with code ${code}`);
-  });
-};
-
-// function callPyProc(csv, pdf) {
-//   let script = getScriptPath();
-
-//   exec("source ./pyapi/venv/bin/activate", (error, stdout, stderr) => {
-//     if (error) {
-//         console.log(`error: ${error.message}`);
-//         return;
-//     }
-//     if (stderr) {
-//         console.log(`stderr: ${stderr}`);
-//         return;
-//     }
-//     console.log(`stdout: ${stdout}`);
-//   });
-
-//   const pythonScript = spawn('python', [script, csv, pdf]);
-
-//   const activateVirtualEnv = spawn('source', ['./pyapi/venv/bin/activate']);
-//   activateVirtualEnv.on('close', (code) => {
-//     console.log(`child process exited with code ${code}`);
-  
-//     const pythonScript = spawn('python', [script, csv, pdf]);
-  
-//     pythonScript.stderr.on('data', (data) => {
-//       console.error(`stderr: ${data}`);
-//     });
-  
-//     pythonScript.on('close', (code) => {
-//       console.log(`child process exited with code ${code}`);
-//     });
-//   }); 
-
-//   pyProcess = spawn("python", [script, csv, pdf]);
-
-//   if (pyProcess != null) {
-//     console.log("child process creation success");
-//   }
-// }
+  if (pyProcess != null) {
+    console.log("child process creation success");
+  }
+}
 
 function exitPyProc() {
   if (pyProcess != null) {

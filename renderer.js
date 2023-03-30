@@ -3,6 +3,10 @@ const api = window.electronAPI;
 function uploadFile(input, isPDF) {
     const filepath = input.files[0].path;
 
+    if (filepath == null || filepath == "" || filepath == "undefined" || filepath == "null" || filepath == "NaN" || filepath == undefined) {
+        return;
+    }
+
     if (isPDF) {
         api.postPDF(filepath);
     } else {

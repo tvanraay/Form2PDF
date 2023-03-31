@@ -22,7 +22,7 @@ function callPyProc(csv, pdf) {
   const pythonScriptPath = getScriptPath();
   const activatePath = getVenvPath();
 
-  pyProcess = spawn('bash', ['-c', `source ${activatePath} && python3 ${pythonScriptPath} ${csv} ${pdf}`]);
+  pyProcess = spawn('bash', ['-c', `source ${activatePath} && python3 ${pythonScriptPath} ${csv} ${pdf} /home/uz1pk/projects/workstudy2/pyapi/bin/test.pdf`]);
 
   if (pyProcess != null) {
     console.log("child process creation success");

@@ -1,87 +1,83 @@
-from fillpdf import fillpdfs
-from csv import DictReader
 import sys
 
-#"./pyapi/bin/new1.pdf"
+from fillpdf import fillpdfs
+from csv import reader
+from utilities import Trie
+
+from PdfObjects.CommentFeedbackBox import CommentFeedbackBox
+from PdfObjects.MultiOptionControl import MultiOptionControl
+from PdfObjects.SingleColumnBox import SingleColumnBox
+from PdfObjects.PdfBoxInterface import PdfBoxInterface
 
 if len(sys.argv) != 4:
-    print("Invalid number of arguments")
-    sys.exit()
+    raise Exception("Incorrect number of arguments")
 
-# constants
-string_options = {"a": 0, "b": 1, "c": 2, "1": 0, "2": 1, "3": 2}
-radio_button_conversion = {"Not Necessary": "No", "Necessary": "Yes"}
-outputFilePath = "./pyapi/bin/new1.pdf"
+# sys argument parsing (MUST BE IN THIS ORDER)
 csvFilePath, pdfFilePath, outputPath = sys.argv[1], sys.argv[2], sys.argv[3]
 
-def is_numeric(x):
-    try:
-        float(x)
-        int(x)
-        return True
-    except (TypeError, ValueError):
-        return False
 
-def create_formatted_data_from_csv(csv_filename: str):
-    values = DictReader(open(csv_filename))
-    data = {}
+def create_csv_column_iter(csv_filename: str):
+    fp = open(csv_filename)
 
-    for row in values:
-        for key, value in row.items():
-            if key not in data:
-                data[key] = []
-            data[key].append(value)
+    csv_reader = reader(fp)
+
+    header = next(csv_reader)
+
+    transposed_data = zip(*csv_reader)
+
+    return zip(header, transposed_data)
+
+
+def data_factory(iter: "zip[str, tuple[str]]"):
+    data: "dict[str, PdfBoxInterface]" = {}
+    prev_col = None
+
+    for column_name, column_data in iter:
+        if not column_name and len([x for x in column_data if x != ""]) <= 0:
+            continue
+        if (
+            column_name != ""
+            and not column_name.endswith("AR")
+            and not column_name.endswith("RR")
+        ):
+            prev_col = column_name
+
+            if column_name.endswith("-R"):
+                data[column_name] = CommentFeedbackBox()
+            elif column_data[0] != "":
+                data[column_name] = MultiOptionControl()
+            else:
+                data[column_name] = SingleColumnBox()
+
+        data[prev_col].add_data(column_data)
+
     return data
 
 
-def fill_fields(data: "dict[str, list]", fields: "dict[str, str]") -> "dict[str, str]":
+def fill_fields(
+    data: "dict[str, PdfBoxInterface]", fields: "dict[str, str]"
+) -> "dict[str, str]":
     updated = fields.copy()
+    trie = Trie(fields.keys())
 
-    for field_key in fields:
-        potential_data_key = field_key[0 : len(field_key) - 1]
+    for data_key in data:
+        query_result = trie.query(data_key)
 
-        if potential_data_key in data :
-            if field_key[-1] in string_options:
-                reviewer_index = string_options[field_key[-1]]
-
-                updated[field_key] = data[potential_data_key][reviewer_index]
-
-        elif "-ave" in field_key:
-            key_without_ave = field_key.replace("-ave", "")
-
-            int_list = [int(x) for x in data[key_without_ave] if is_numeric(x)]
-
-            if len(data[key_without_ave]) > 0:
-                average = sum(int_list) / len(data[key_without_ave])
-
-            updated[field_key] = str(round(average, 2))
+        for field in query_result:
+            final_result = data[data_key].export_key(field)
+            updated[field] = final_result if final_result else ""
 
     return updated
 
 
 # set raw data and parameters needed
-data = create_formatted_data_from_csv(csvFilePath)
+csv_reader = create_csv_column_iter(csvFilePath)
+
+data = data_factory(csv_reader)
 
 # get all PDF fields
 all_fields = fillpdfs.get_form_fields(pdfFilePath)
 
 field_updates = fill_fields(data, all_fields)
 
-while 1:
-    try:
-        fillpdfs.write_fillable_pdf(
-            pdfFilePath, outputPath, field_updates
-        )
-        break
-
-    except KeyError as e:
-        message: str = e.args[0]
-        split1 = message.split("(")
-        final_split = []
-        for message in split1:
-            for sub_message in message.split(")"):
-                final_split.append(sub_message)
-
-        field_key = final_split[1]
-
-        field_updates[field_key] = radio_button_conversion[field_updates[field_key]]
+fillpdfs.write_fillable_pdf(pdfFilePath, outputPath, field_updates)

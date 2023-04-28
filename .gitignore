@@ -8,6 +8,13 @@ lerna-debug.log*
 
 /.vscode/
 
+.DS_Store
+
+*.csv
+*.pdf
+
+/out/
+
 /pyapi/tempvenv/
 /pyapi/venv/
 /pyapi/bin/

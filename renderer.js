@@ -21,7 +21,8 @@ function uploadFile(input, isPDF) {
 }
 
 async function processPDF() {
-    await api.processPDF();
+    const pdfProcessResult = await api.processPDF();
+    alert(pdfProcessResult);
 }
 
 function sanitzeFilename(filename) {

@@ -6,7 +6,6 @@ const PY_FOLDER = "pyapi";
 const PY_MODULE = "program";
 const PY_ACTIVATE = "venv/bin/activate";
 
-let pyProcess = null;
 let inputCSVPath = null;
 let inputPDFPath = null;
 
@@ -19,25 +18,33 @@ function getVenvPath() {
 }
 
 function callPyProc(csv, pdf) {
-  const pythonScriptPath = getScriptPath();
-  const activatePath = getVenvPath();
+  return new Promise((resolve) => {
+    const pythonScriptPath = getScriptPath();
+    const activatePath = getVenvPath();
 
-  pyProcess = spawn('bash', ['-c', `source ${activatePath} && python3 ${pythonScriptPath} ${csv} ${pdf} /home/uz1pk/projects/workstudy2/pyapi/bin/test.pdf`]);
+    const pyProcess = spawn('bash', ['-c', `source ${activatePath} && python3 ${pythonScriptPath} ${csv} ${pdf} ${__dirname}/pyapi/bin/test.pdf`]);
 
-  if (pyProcess != null) {
-    console.log("child process creation success");
-  }
+    if (pyProcess != null) {
+      console.log("child process created");
+    }
+  
+    pyProcess.on('error', (err) => {
+      resolve(err.message);
+    });
+    
+    pyProcess.stderr.on('data', (err) => {
+      resolve(err.toString());
+    });
+
+    pyProcess.on('exit', (code, signal) => {
+      if (code === 0) {
+        resolve('Script finished successfully');
+      } else {
+        resolve(`Script exited with code ${code} and signal ${signal}`);
+      }
+    });
+  });
 }
-
-function exitPyProc() {
-  if (pyProcess != null) {
-    pyProcess.kill();
-    pyProcess = null;
-    console.log("child process killed");
-  }
-}
-
-app.on("will-quit", exitPyProc);
 
 /*************************************************************
  * IPC/API Handlers
@@ -59,17 +66,12 @@ function getPDF(event) {
   return inputPDFPath;
 }
 
-function processPDF(event) {
+async function processPDF(event) {
   if (inputCSVPath == null || inputPDFPath == null) {
     return { error: "Please upload both a CSV and a PDF" };
   }
 
-  callPyProc(inputCSVPath, inputPDFPath);
-
-  return {
-    pdf: inputPDFPath,
-    csv: inputCSVPath,
-  };
+  return await callPyProc(inputCSVPath, inputPDFPath);
 }
 
 /*************************************************************

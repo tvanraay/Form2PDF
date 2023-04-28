@@ -8,10 +8,13 @@ lerna-debug.log*
 
 /.vscode/
 
+/pyapi/tempvenv/
 /pyapi/venv/
 /pyapi/bin/
 /pyapi/__pycache__/
 /pyapi/PdfObjects/__pycache__/
+
+package-lock.json
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

@@ -6,6 +6,8 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+/.vscode/
+
 /pyapi/venv/
 /pyapi/bin/
 /pyapi/__pycache__/

@@ -1,11 +1,13 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const spawn = require("child_process").spawn;
 
 const PY_FOLDER = "pyapi";
 const PY_MODULE = "program";
 const PY_ACTIVATE = "venv/bin/activate";
+const EXPORT_PDF_NAME = "FilledExport.pdf";
 
+let exportDirectoryPath = null;
 let inputCSVPath = null;
 let inputPDFPath = null;
 
@@ -17,12 +19,12 @@ function getVenvPath() {
   return path.join(__dirname, PY_FOLDER, PY_ACTIVATE);
 }
 
-function callPyProc(csv, pdf) {
+function callPyProc(csv, pdf, directory) {
   return new Promise((resolve) => {
     const pythonScriptPath = getScriptPath();
     const activatePath = getVenvPath();
 
-    const pyProcess = spawn('bash', ['-c', `source ${activatePath} && python3 ${pythonScriptPath} ${csv} ${pdf} ${__dirname}/pyapi/bin/test.pdf`]);
+    const pyProcess = spawn('bash', ['-c', `source ${activatePath} && python3 ${pythonScriptPath} ${csv} ${pdf} ${directory}/${EXPORT_PDF_NAME}`]);
 
     if (pyProcess != null) {
       console.log("child process created");
@@ -58,6 +60,10 @@ function postCSV(event, filepath) {
   inputCSVPath = filepath;
 }
 
+function log(event, message) {
+  console.log(message);
+}
+
 function getCSV(event) {
   return inputCSVPath;
 }
@@ -71,7 +77,18 @@ async function processPDF(event) {
     return { error: "Please upload both a CSV and a PDF" };
   }
 
-  return await callPyProc(inputCSVPath, inputPDFPath);
+  selectDirectory();
+
+  if (exportDirectoryPath == null || exportDirectoryPath == "" || exportDirectoryPath == "undefined" || exportDirectoryPath == "null" || exportDirectoryPath == "NaN" || exportDirectoryPath == undefined) {
+    return "Must select a directory/path to export too";
+  }
+
+  return await callPyProc(inputCSVPath, inputPDFPath, exportDirectoryPath);
+}
+
+function selectDirectory() {
+  // Show a dialog box to select a directory
+  exportDirectoryPath = dialog.showOpenDialogSync({ properties: ['openDirectory'] })
 }
 
 /*************************************************************
@@ -90,6 +107,7 @@ function createWindow() {
   // api invokation handlers
   ipcMain.on("postCSV", postCSV);
   ipcMain.on("postPDF", postPDF);
+  ipcMain.on("log", log);
 
   win.loadFile("index.html");
 }

@@ -7,5 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getCSV: () => ipcRenderer.invoke('getCSV'),
     getPDF: () => ipcRenderer.invoke('getPDF'),
     
-    processPDF: () => ipcRenderer.invoke('processPDF')
+    processPDF: () => ipcRenderer.invoke('processPDF'),
+
+    log: (message) => ipcRenderer.send('log', message),
 });

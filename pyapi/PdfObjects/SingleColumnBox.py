@@ -44,6 +44,6 @@ class SingleColumnBox(PdfBoxInterface):
 
         average = 0
         if len(self.data) > 0:
-            average = sum(num_list) / len(self.data)
+            average = sum(num_list) / len(sanitized_data)
 
         return str(round(average, 2))

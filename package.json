@@ -1,12 +1,14 @@
 {
-  "name": "pretty-calculator",
+  "name": "Form2PDF",
   "version": "1.0.0",
-  "description": "A electron app to parse formSite CSV exports into a PDF",
+  "description": "A electron app to parse formsite CSV exports into a PDF",
   "main": "main.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make"
+    "make": "electron-forge make",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
   "repository": "https://github.com/uz1pk/workstudy2.git",
   "author": "Usman Zaheer <usmanozaheer@gmail.com>",
@@ -17,9 +19,16 @@
     "@electron-forge/maker-rpm": "^6.1.1",
     "@electron-forge/maker-squirrel": "^6.1.1",
     "@electron-forge/maker-zip": "^6.1.1",
-    "electron": "^23.1.1"
+    "electron": "^23.1.1",
+    "electron-builder": "^23.6.0"
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.0"
+  },
+  "build": {
+  "appId": "com.example.form2pdf",
+  "mac": {
+    "category": "your.app.category.type"
   }
+}
 }

@@ -1,21 +1,30 @@
 ## Installing and Running:
 
-Clone the project
-
-    git clone https://github.com/uz1pk/Form2PDF.git
-
-
-Install Dependencies
+Install Node Dependencies
 
     npm install
+
+
+Setup Python Env and Create Platform Executable
+
     cd pyapi
     python3 -m venv venv
     source venv/bin/activate
+    pip install -r requirements.txt
+    pip install pyinstaller
+    pyinstaller program.py
     cd ..
 
 Running the Application:
 
     npm start
+
+
+## Building Distributables
+
+    npm electron-builder -mwl
+
+In the newly create dist folder. Extract the files needed and test/run on the targetted machine/platform
 
 
 ## Prerequisites

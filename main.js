@@ -1,51 +1,15 @@
+const spawn = require("cross-spawn");
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
-const spawn = require("child_process").spawn;
 
-const PY_FOLDER = "pyapi";
-const PY_MODULE = "program";
-const PY_ACTIVATE = "venv/bin/activate";
 const EXPORT_PDF_NAME = "FilledExport.pdf";
 
 let exportDirectoryPath = null;
 let inputCSVPath = null;
-let inputPDFPath = null;
+let inputPDFPath = null;  
 
-function getScriptPath() {
-  return path.join(__dirname, PY_FOLDER, PY_MODULE + ".py");
-}
-
-function getVenvPath() {
-  return path.join(__dirname, PY_FOLDER, PY_ACTIVATE);
-}
-
-function callPyProc(csv, pdf, directory) {
-  return new Promise((resolve) => {
-    const pythonScriptPath = getScriptPath();
-    const activatePath = getVenvPath();
-
-    const pyProcess = spawn('bash', ['-c', `source ${activatePath} && python3 ${pythonScriptPath} ${csv} ${pdf} ${directory}/${EXPORT_PDF_NAME}`]);
-
-    if (pyProcess != null) {
-      console.log("child process created");
-    }
-  
-    pyProcess.on('error', (err) => {
-      resolve(err.message);
-    });
-    
-    pyProcess.stderr.on('data', (err) => {
-      resolve(err.toString());
-    });
-
-    pyProcess.on('exit', (code, signal) => {
-      if (code === 0) {
-        resolve('Script finished successfully');
-      } else {
-        resolve(`Script exited with code ${code} and signal ${signal}`);
-      }
-    });
-  });
+function getExePath() {
+  return path.resolve(app.getAppPath(), `./pyapi/dist/program/program`).replace("app.asar", "app.asar.unpacked");
 }
 
 /*************************************************************
@@ -72,18 +36,29 @@ function getPDF(event) {
   return inputPDFPath;
 }
 
-async function processPDF(event) {
-  if (inputCSVPath == null || inputPDFPath == null) {
-    return { error: "Please upload both a CSV and a PDF" };
+function processPDF(event) {
+  try {
+    if (inputCSVPath == null || inputPDFPath == null) {
+      return { error: "Please upload both a CSV and a PDF" };
+    }
+  
+    selectDirectory();
+  
+    if (exportDirectoryPath == null || exportDirectoryPath == "" || exportDirectoryPath == "undefined" || exportDirectoryPath == "null" || exportDirectoryPath == "NaN" || exportDirectoryPath == undefined) {
+      return "Must select a directory/path to export too";
+    }
+
+    const exportPath = path.join(exportDirectoryPath.toString(), EXPORT_PDF_NAME);
+    const result = spawn.sync(getExePath(), [inputCSVPath, inputPDFPath, exportPath]);
+
+    if (result.stderr == null || result.stderr == undefined || result.stderr.toString() == "" || result.stderr.toString() == " " || result.stderr.toString() == "\n") {
+      return "Successfully Filled PDF"; 
+    }
+
+    return result.stderr.toString();
+  } catch (err) {
+    return err.message;
   }
-
-  selectDirectory();
-
-  if (exportDirectoryPath == null || exportDirectoryPath == "" || exportDirectoryPath == "undefined" || exportDirectoryPath == "null" || exportDirectoryPath == "NaN" || exportDirectoryPath == undefined) {
-    return "Must select a directory/path to export too";
-  }
-
-  return await callPyProc(inputCSVPath, inputPDFPath, exportDirectoryPath);
 }
 
 function selectDirectory() {
@@ -113,7 +88,6 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-
   // api return handlers
   ipcMain.handle("getCSV", getCSV);
   ipcMain.handle("getPDF", getPDF);

@@ -4,11 +4,12 @@
   "description": "A electron app to parse formsite CSV exports into a PDF",
   "main": "main.js",
   "scripts": {
-    "start": "electron-forge start",
+    "start": "electron .",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "build": "electron-builder"
   },
   "repository": "https://github.com/uz1pk/workstudy2.git",
   "author": "Usman Zaheer <usmanozaheer@gmail.com>",
@@ -23,12 +24,11 @@
     "electron-builder": "^23.6.0"
   },
   "dependencies": {
+    "cross-spawn": "^7.0.3",
     "electron-squirrel-startup": "^1.0.0"
   },
   "build": {
-  "appId": "com.example.form2pdf",
-  "mac": {
-    "category": "your.app.category.type"
+    "appId": "com.electron.Form2PDF",
+    "asarUnpack": "pyapi/dist/**"
   }
-}
 }

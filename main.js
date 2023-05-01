@@ -1,5 +1,5 @@
-const spawn = require("cross-spawn");
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const spawn = require("cross-spawn");
 const path = require("path");
 
 const EXPORT_PDF_NAME = "FilledExport.pdf";
@@ -8,8 +8,17 @@ let exportDirectoryPath = null;
 let inputCSVPath = null;
 let inputPDFPath = null;  
 
-function getExePath() {
+/*************************************************************
+ * Helpers
+ *************************************************************/
+
+function getPyExePath() {
   return path.resolve(app.getAppPath(), `./pyapi/dist/program/program`).replace("app.asar", "app.asar.unpacked");
+}
+
+function selectDirectory() {
+  // Show a dialog box to select a directory
+  exportDirectoryPath = dialog.showOpenDialogSync({ properties: ['openDirectory'] })
 }
 
 /*************************************************************
@@ -38,8 +47,8 @@ function getPDF(event) {
 
 function processPDF(event) {
   try {
-    if (inputCSVPath == null || inputPDFPath == null) {
-      return { error: "Please upload both a CSV and a PDF" };
+    if (inputCSVPath == null || inputCSVPath == undefined || inputPDFPath == null || inputPDFPath == undefined) {
+      return "Please upload both a CSV and a PDF";
     }
   
     selectDirectory();
@@ -49,7 +58,7 @@ function processPDF(event) {
     }
 
     const exportPath = path.join(exportDirectoryPath.toString(), EXPORT_PDF_NAME);
-    const result = spawn.sync(getExePath(), [inputCSVPath, inputPDFPath, exportPath]);
+    const result = spawn.sync(getPyExePath(), [inputCSVPath, inputPDFPath, exportPath]);
 
     if (result.stderr == null || result.stderr == undefined || result.stderr.toString() == "" || result.stderr.toString() == " " || result.stderr.toString() == "\n") {
       return "Successfully Filled PDF"; 
@@ -59,11 +68,6 @@ function processPDF(event) {
   } catch (err) {
     return err.message;
   }
-}
-
-function selectDirectory() {
-  // Show a dialog box to select a directory
-  exportDirectoryPath = dialog.showOpenDialogSync({ properties: ['openDirectory'] })
 }
 
 /*************************************************************
